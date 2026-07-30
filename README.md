@@ -2,6 +2,11 @@
 
 A Model Context Protocol (MCP) server that dynamically exposes all astroquery functionality to AI assistants. This server uses introspection to discover and expose Python package functionality through MCP tools, making it a reusable template for creating MCP servers for any Python library.
 
+> Part of **AI Agents for Science** (Accelerated Knowledge Discovery — AKD). This MCP server is the
+> data-access backend for the [**AKD Astro Data Search Agent**](https://huggingface.co/spaces/ai-agents-for-science/astro-data-search-agent),
+> a natural-language astrophysics dataset-discovery system, also packaged as a
+> [Claude Code plugin](https://github.com/NASA-IMPACT/akd-plugins/tree/main/plugins/astro-data-search-assistant).
+
 ## What is This?
 
 This is an MCP server that:
@@ -626,3 +631,33 @@ execute("heasarc", "query_tap", {"query": "SELECT * FROM chandra_observation"})
 2. **List functions**: `list_functions("simbad")` - See all functions for SIMBAD
 3. **Get function info**: `get_function_info("simbad", "query_object")` - See detailed parameters
 4. **Execute**: `execute("simbad", "query_object", {"object_name": "M31"})` - Run the query
+
+## Citation
+
+If you use this software in your research, please cite it as:
+
+```
+Astroquery MCP Server. NASA IMPACT.
+https://github.com/NASA-IMPACT/astroquery-mcp
+```
+
+## Contributors
+
+- **Gaurab Panthee** ([@igaurab](https://github.com/igaurab)) — original author
+- **Ashkbiz Danehkar** ([@danehkar](https://github.com/danehkar)) — astrophysics domain expertise; Universities Space Research Association
+- **Nish** ([@NISH1001](https://github.com/NISH1001)) — NASA IMPACT / UAH
+- **Muthukumaran R** ([@muthukumaranR](https://github.com/muthukumaranR)) — NASA IMPACT
+
+## Acknowledgments
+
+Originally developed by [Gaurab Panthee](https://github.com/igaurab) in collaboration with
+astrophysicist [Ashkbiz Danehkar](https://github.com/danehkar) (Universities Space Research
+Association). This repository is the canonical home for continued development under NASA IMPACT.
+
+Built on [astroquery](https://astroquery.readthedocs.io/), an
+[Astropy](https://www.astropy.org/)-affiliated package, and served over MCP with
+[FastMCP](https://gofastmcp.com/).
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

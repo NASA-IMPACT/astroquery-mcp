@@ -9,6 +9,11 @@ __pycache__/
 venv/
 ENV/
 
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+
 # IDE
 .vscode/
 .idea/
