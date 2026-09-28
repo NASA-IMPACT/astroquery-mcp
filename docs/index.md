@@ -1,20 +1,54 @@
 # astroquery-mcp
 
-An [MCP](https://modelcontextprotocol.io/) server that gives AI assistants access to
-astronomical archives through [astroquery](https://astroquery.readthedocs.io/).
+astroquery-mcp is an MCP server that lets your AI assistants, like Claude and Codex, search
+astronomy data for you. Ask a question in
+plain language, and the assistant can look up objects, find telescope observations, pull catalog
+data and search the research literature from the following archives:
 
-The server does not hand-write a tool for every archive function. It uses **introspection**
-(Python looking at its own code at runtime) to discover functions from astroquery classes such as
-`Simbad`, `Ned` and `Observations`, and exposes them through a small set of generic MCP tools.
+```{include} reference/archive_list.md
+```
 
-## How to read these docs
+## Installation
 
-- **[MCP Tools](reference/tools.md)**: the tools an AI client actually sees and calls.
-- **[Archives](reference/archives/index.md)**: every archive (SIMBAD, NED, MAST, ...) and every
-  function you can call through `astroquery_execute`, with parameters from the upstream docstrings.
+```bash
+git clone https://github.com/NASA-IMPACT/astroquery-mcp.git
+cd astroquery-mcp
+uv sync
+```
 
-Both reference sections are generated from the source code on every release, so they always match
-the server.
+### Run locally
+
+You can run this MCP server locally from the code you just cloned. This starts it at
+`http://127.0.0.1:8000/mcp`:
+
+```bash
+uv run fastmcp run server.py --transport http --port 8000
+```
+
+To use a different port (for example, when 8000 is already in use), change `--port`. The URL
+changes to match, e.g. `--port 9000` gives `http://127.0.0.1:9000/mcp`.
+
+Point any MCP client that supports HTTP servers at that URL. For example, in Claude Code:
+
+```bash
+claude mcp add --transport http astroquery http://127.0.0.1:8000/mcp
+```
+
+### Authentication
+
+| Service | Environment variable | Needed for |
+|---|---|---|
+| NASA ADS | `API_DEV_KEY` | All ADS queries |
+| MAST | `MAST_TOKEN` | Proprietary MAST data only |
+
+Set them in your shell before starting the server:
+
+```bash
+export API_DEV_KEY="your-ads-token"
+export MAST_TOKEN="your-mast-token"
+```
+
+Use the `astroquery_check_auth` tool to see which tokens the server picked up.
 
 ## Typical workflow
 
@@ -29,38 +63,6 @@ Special parameter handling in `astroquery_execute`:
 
 - **Coordinates** can be an object name (`"M31"`) or `{"ra": 10.68, "dec": 41.27}` (degrees).
 - **Radius** can be a number (arcmin) or `{"value": 5, "unit": "arcmin"}`.
-
-## Installation
-
-```bash
-git clone https://github.com/NASA-IMPACT/astroquery-mcp.git
-cd astroquery-mcp
-uv sync
-uv run python3 server.py
-```
-
-### Claude Desktop / Claude Code
-
-```json
-{
-  "mcpServers": {
-    "astroquery": {
-      "command": "uv",
-      "args": ["--directory", "/path/to/astroquery-mcp", "run", "python3", "server.py"],
-      "env": { "API_DEV_KEY": "your-ads-token", "MAST_TOKEN": "your-mast-token" }
-    }
-  }
-}
-```
-
-### Authentication
-
-| Service | Environment variable | Needed for |
-|---|---|---|
-| NASA ADS | `API_DEV_KEY` | All ADS queries |
-| MAST | `MAST_TOKEN` | Proprietary MAST data only |
-
-Use the `astroquery_check_auth` tool to see which tokens the server picked up.
 
 ## Links
 

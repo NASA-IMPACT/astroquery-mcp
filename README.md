@@ -38,10 +38,10 @@ This server provides access to **14 astronomical data services** with **141 func
 | **ESA JWST** | 16 | ESA James Webb Space Telescope Archive |
 
 **Example queries:**
-- Query SIMBAD for object data: `execute("simbad", "query_object", {"object_name": "M31"})`
-- Search MAST for observations: `execute("mast", "query_region", {"coordinates": "M31", "radius": 0.1})`
-- Get exoplanet data: `execute("nea", "query_object", {"object_name": "Kepler-22 b"})`
-- Run TAP/ADQL queries: `execute("simbad", "query_tap", {"query": "SELECT TOP 10 * FROM basic"})`
+- Query SIMBAD for object data: `astroquery_execute("simbad", "query_object", {"object_name": "M31"})`
+- Search MAST for observations: `astroquery_execute("mast", "query_region", {"coordinates": "M31", "radius": 0.1})`
+- Get exoplanet data: `astroquery_execute("nea", "query_object", {"object_name": "Kepler-22 b"})`
+- Run TAP/ADQL queries: `astroquery_execute("simbad", "query_tap", {"query": "SELECT TOP 10 * FROM basic"})`
 
 For the complete, always-current list of MCP tools, archives and functions with full parameters, see the [documentation site](https://nasa-impact.github.io/astroquery-mcp/) or the [wiki](https://github.com/NASA-IMPACT/astroquery-mcp/wiki).
 
@@ -613,7 +613,7 @@ Query SIMBAD TAP service.
 - `get_query_payload` (Any, optional, default=False): When True, returns HTTP request parameters
 - `uploads` (Any, required): Local tables to be used in query
 
-*For the complete list of all 141 functions across all 14 modules, see the full scope documentation or use the `list_functions()` MCP tool.*
+*For the complete list of all 141 functions across all 14 modules, see the full scope documentation or use the `astroquery_list_functions()` MCP tool.*
 
 ### Key Function Patterns
 
@@ -631,20 +631,20 @@ All functions are called through the `astroquery_execute` MCP tool:
 
 ```python
 # Basic syntax
-execute(module_name, function_name, params)
+astroquery_execute(module_name, function_name, params)
 
 # Examples
-execute("simbad", "query_object", {"object_name": "M31"})
-execute("mast", "query_region", {"coordinates": "M31", "radius": 0.1})
-execute("heasarc", "query_tap", {"query": "SELECT * FROM chandra_observation"})
+astroquery_execute("simbad", "query_object", {"object_name": "M31"})
+astroquery_execute("mast", "query_region", {"coordinates": "M31", "radius": 0.1})
+astroquery_execute("heasarc", "query_tap", {"query": "SELECT * FROM chandra_observation"})
 ```
 
 ### Discovery Workflow
 
-1. **List modules**: `list_modules()` - See all 14 available modules
-2. **List functions**: `list_functions("simbad")` - See all functions for SIMBAD
-3. **Get function info**: `get_function_info("simbad", "query_object")` - See detailed parameters
-4. **Execute**: `execute("simbad", "query_object", {"object_name": "M31"})` - Run the query
+1. **List modules**: `astroquery_list_modules()` - See all 14 available modules
+2. **List functions**: `astroquery_list_functions("simbad")` - See all functions for SIMBAD
+3. **Get function info**: `astroquery_get_function_info("simbad", "query_object")` - See detailed parameters
+4. **Execute**: `astroquery_execute("simbad", "query_object", {"object_name": "M31"})` - Run the query
 
 ## Citation
 

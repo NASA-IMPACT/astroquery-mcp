@@ -50,6 +50,9 @@ MODULE_META = {
 }
 
 
+# Exposed modules that are helpers rather than data archives (left out of the home-page list).
+NON_ARCHIVES = {"coordinates"}
+
 # ---------------------------------------------------------------------------
 # Docstring -> Markdown
 # ---------------------------------------------------------------------------
@@ -77,6 +80,7 @@ def rst_to_md(text: str | None) -> str:
 def cell(text: Any) -> str:
     """Make text safe for a single Markdown table cell."""
     text = rst_to_md(str(text)) if text not in (None, "") else ""
+    text = re.sub(r"\n\s*(?=- )", "<br>", text)  # keep bullet lists readable inside the cell
     return re.sub(r"\s*\n\s*", " ", text).replace("|", "\\|")
 
 
@@ -182,7 +186,7 @@ def collect_tools() -> tuple[str, list[dict]]:
 
 def schema_type(prop: dict) -> str:
     if "enum" in prop:
-        return " \\| ".join(json.dumps(v) for v in prop["enum"])
+        return " | ".join(json.dumps(v) for v in prop["enum"])  # cell() escapes the pipes
     if "anyOf" in prop:
         return " or ".join(schema_type(p) for p in prop["anyOf"])
     return prop.get("type", "any")
@@ -344,6 +348,11 @@ def render_archive_page(module: str, functions: list, sphinx: bool = False) -> s
     return "\n\n".join(p for p in parts if p) + "\n"
 
 
+def render_archive_list(archives: dict[str, list]) -> str:
+    """Bullet list of supported archives, included in the home page."""
+    return "\n".join(f"- {title_for(m)}" for m in archives if m not in NON_ARCHIVES) + "\n"
+
+
 def render_archives_index(archives: dict[str, list], link: LinkFn, toctree: str = "") -> str:
     total = sum(len(v) for v in archives.values())
     rows = "\n".join(
@@ -379,6 +388,7 @@ def build_site(out: Path, instructions, tools, archives) -> None:
     shutil.rmtree(ref, ignore_errors=True)
     toctree = "\n```{toctree}\n:hidden:\n\n" + "\n".join(archives) + "\n```\n"
     write(ref / "tools.md", render_tools_page(instructions, tools))
+    write(ref / "archive_list.md", render_archive_list(archives))
     write(ref / "archives" / "index.md", render_archives_index(archives, link, toctree))
     for m, fns in archives.items():
         write(ref / "archives" / f"{m}.md", render_archive_page(m, fns, sphinx=True))
@@ -425,6 +435,7 @@ def main() -> None:
 
     build_site(args.docs_dir, instructions, tools, archives)
     home = re.sub(r"```\{toctree\}.*?```\n?", "", (args.docs_dir / "index.md").read_text(), flags=re.S)
+    home = re.sub(r"```\{include\} reference/archive_list.md\n```\n?", render_archive_list(archives), home)
     home = home.replace("reference/tools.md", "MCP-Tools").replace("reference/archives/index.md", "Archives")
     build_wiki(args.wiki_dir, args.version, home, instructions, tools, archives)
 
