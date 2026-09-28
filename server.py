@@ -192,6 +192,8 @@ def astroquery_execute(
         params: Parameters to pass to the function. Special handling:
             - Coordinates: Pass as {"ra": 10.68, "dec": 41.27} or object name string
             - Radius: Pass as {"value": 5, "unit": "arcmin"} or just a number (arcmin)
+        max_rows: Maximum rows returned for MAST query_region results (default: 20).
+            The response reports total_rows and truncated so callers can tell.
 
     Returns:
         Dict with success status and serialized result (tables converted to dicts).

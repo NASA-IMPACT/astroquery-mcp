@@ -1,0 +1,15 @@
+# Optional: Read the Docs hosting. docs/conf.py generates the reference pages itself.
+version: 2
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.13"
+  jobs:
+    create_environment:
+      - asdf plugin add uv
+      - asdf install uv latest
+      - asdf global uv latest
+    install:
+      - UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH uv sync --group docs --frozen
+sphinx:
+  configuration: docs/conf.py

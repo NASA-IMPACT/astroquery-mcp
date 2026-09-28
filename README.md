@@ -43,7 +43,7 @@ This server provides access to **14 astronomical data services** with **141 func
 - Get exoplanet data: `execute("nea", "query_object", {"object_name": "Kepler-22 b"})`
 - Run TAP/ADQL queries: `execute("simbad", "query_tap", {"query": "SELECT TOP 10 * FROM basic"})`
 
-For a complete list of all 141 functions with detailed signatures and parameters, see the [Scope Documentation](https://github.com/yourusername/astroquery-mcp/blob/main/SCOPE.md) (if included in your repository).
+For the complete, always-current list of MCP tools, archives and functions with full parameters, see the [documentation site](https://nasa-impact.github.io/astroquery-mcp/) or the [wiki](https://github.com/NASA-IMPACT/astroquery-mcp/wiki).
 
 ## How It Works
 
@@ -343,6 +343,20 @@ Now AI assistants can call:
 execute("io", "read_csv", {"filepath_or_buffer": "data.csv"})
 execute("dataframe", "describe", {})
 ```
+
+## Documentation
+
+The [documentation site](https://nasa-impact.github.io/astroquery-mcp/) (Sphinx, Read the Docs theme) and the
+[GitHub wiki](https://github.com/NASA-IMPACT/astroquery-mcp/wiki) are generated from the source docstrings by
+`scripts/gen_docs.py` and republished automatically on every GitHub release (`.github/workflows/docs.yml`).
+
+Build locally:
+
+```bash
+uv run --group docs sphinx-build -b html docs docs/_build/html
+```
+
+This writes the site to `docs/_build/html` and the wiki pages to `build/wiki`.
 
 ## Advanced Features
 

@@ -1,0 +1,17 @@
+/* Brand color #0032A0 on top of sphinx_rtd_theme's default blue (#2980B9). */
+:root { --brand: #0032A0; --brand-dark: #00237A; }
+
+.wy-side-nav-search, .wy-nav-top { background-color: var(--brand); }
+.wy-side-nav-search input[type="text"] { border-color: var(--brand-dark); }
+
+/* Brand links only in the page body; the dark sidebar keeps light text. */
+.wy-nav-content a, .wy-nav-content a:visited, .rst-content a code { color: var(--brand); }
+.wy-nav-content a:hover { color: var(--brand-dark); }
+.wy-menu-vertical a:hover, .wy-menu-vertical li.current a:hover { color: #fff; background-color: #000; }
+.wy-menu-vertical a:active, .wy-menu-vertical header, .wy-menu-vertical p.caption { color: #9DB8F0; }
+
+.btn-info, .btn-neutral:hover { background-color: var(--brand) !important; }
+
+/* autodoc signatures and inline code */
+.rst-content dl.py > dt { background: #E8EDF8; border-top-color: var(--brand); color: var(--brand-dark); }
+.rst-content code.literal, .rst-content tt.literal { color: var(--brand-dark); }
