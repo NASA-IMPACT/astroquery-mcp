@@ -25,6 +25,12 @@
 - `utils/` - Helpers (async, coordinates, table serialization)
 - `test/` - Tests
 
+**Docs** (generated, never hand-edit the reference pages):
+- `scripts/gen_docs.py` - Builds reference pages from the FastMCP tool registry + `discover_all_functions()`
+- `docs/` - Sphinx source (`conf.py` runs the generator); `docs/reference/` is generated and gitignored
+- `.github/workflows/docs.yml` - On release: deploys site to GitHub Pages and syncs `build/wiki` to the GitHub wiki
+- Tool docstrings in `server.py` ARE the docs: keep Args/Returns/Examples sections accurate
+
 **Key Pattern**: Server uses introspection to auto-expose Python packages as MCP tools. Changes to add functionality usually go in executor/introspection, not new tool files.
 
 ## Maintenance

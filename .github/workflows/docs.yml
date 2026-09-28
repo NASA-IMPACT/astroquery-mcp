@@ -1,0 +1,80 @@
+name: Docs
+
+# Builds on every PR (as a check). On each published release, deploys the Sphinx site
+# to GitHub Pages and syncs the generated pages to the GitHub wiki.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "*.py"
+      - "docs/**"
+      - "scripts/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docs.yml"
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOCS_VERSION: ${{ github.event.release.tag_name || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group docs --frozen
+      - name: Build site (also generates build/wiki)
+        run: uv run sphinx-build -b html --keep-going docs docs/_build/html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wiki
+          path: build/wiki
+
+  deploy-pages:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  publish-wiki:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wiki
+          path: generated
+      - name: Push to wiki
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          # The wiki repo only exists after its first page is created in the GitHub UI.
+          git clone "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki
+          rsync -a --delete --exclude .git generated/ wiki/
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Wiki already up to date"; exit 0; fi
+          git commit -m "Update docs for ${VERSION}"
+          git push

@@ -20,3 +20,9 @@ ENV/
 
 # OS
 .DS_Store
+
+# Generated documentation (scripts/gen_docs.py)
+docs/reference/
+docs/SUMMARY.md
+build/
+docs/_build/
