@@ -205,8 +205,10 @@ def astroquery_execute(
         params: Parameters to pass to the function. Special handling:
             - Coordinates: Pass as {"ra": 10.68, "dec": 41.27} or object name string
             - Radius: Pass as {"value": 5, "unit": "arcmin"} or just a number (arcmin)
-        max_rows: Maximum rows returned for MAST query_region results (default: 20).
-            The response reports total_rows and truncated so callers can tell.
+        max_rows: Maximum rows kept per result table, for every module and function
+            (default: 20). Each table reports row_count (rows returned), total_rows and
+            truncated so callers can tell rows were dropped. Raise it, or narrow the query
+            (smaller radius, filters, TOP in ADQL), when more rows are needed.
 
     Returns:
         Dict with success status, kind ("metadata" or "retrieval") and serialized result
@@ -247,28 +249,7 @@ def astroquery_execute(
         })
     """
     try:
-        response = execute_function(module_name, function_name, params)
-
-        if module_name == "mast" and function_name == "query_region":
-            result = response.get("result")
-            if isinstance(result, dict) and "data" in result:
-                total = result.get("row_count", len(result["data"]))
-                truncated = len(result["data"]) > max_rows
-                result = {
-                    **result,
-                    "data": result["data"][:max_rows],
-                    "row_count": min(max_rows, total),
-                    "total_rows": total,
-                    "truncated": truncated,
-                }
-            return {
-                "success": response.get("success"),
-                "module": response.get("module"),
-                "function": response.get("function"),
-                "params": response.get("params"),
-                "result": result,
-            }
-        return response
+        return execute_function(module_name, function_name, params, max_rows=max_rows)
 
     except Exception as e:
         return handle_error(e)

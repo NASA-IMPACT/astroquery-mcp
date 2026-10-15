@@ -204,12 +204,17 @@ def _store_product(result: Any, artifacts: ArtifactCall) -> dict[str, Any] | Non
     return None
 
 
-def serialize_result(result: Any, artifacts: ArtifactCall | None = None) -> Any:
+def serialize_result(
+    result: Any,
+    artifacts: ArtifactCall | None = None,
+    max_rows: int | None = None,
+) -> Any:
     """Serialize astroquery results to JSON-compatible format.
 
     Handles Astropy Tables, SkyCoords, Quantities, etc. Science products (FITS HDULists, lazy
     FileContainers, binary blobs, large arrays, paths to downloaded files) are never inlined:
     they are stored in the artifact store and replaced by {"artifact_id", "filename"} references.
+    Every table, at any nesting level, is cut to max_rows rows (None = no limit).
     """
     if result is None:
         return None
@@ -234,11 +239,11 @@ def serialize_result(result: Any, artifacts: ArtifactCall | None = None) -> Any:
 
     # Astropy Table
     if isinstance(result, Table):
-        return table_to_dict(result)
+        return table_to_dict(result, max_rows)
 
     # List of Tables
     if isinstance(result, list) and result and all(isinstance(t, Table) for t in result):
-        return [table_to_dict(t) for t in result]
+        return [table_to_dict(t, max_rows) for t in result]
 
     # SkyCoord - provide rich output with multiple formats
     if isinstance(result, SkyCoord):
@@ -270,7 +275,7 @@ def serialize_result(result: Any, artifacts: ArtifactCall | None = None) -> Any:
     if hasattr(result, "value") and hasattr(result, "unit"):
         if np.ndim(result.value) == 0:
             return {"value": float(result.value), "unit": str(result.unit)}
-        return {"value": serialize_result(np.asarray(result.value), artifacts), "unit": str(result.unit)}
+        return {"value": serialize_result(np.asarray(result.value), artifacts, max_rows), "unit": str(result.unit)}
 
     # Small numpy arrays inline (large ones were stored above)
     if isinstance(result, np.ndarray):
@@ -278,11 +283,11 @@ def serialize_result(result: Any, artifacts: ArtifactCall | None = None) -> Any:
 
     # Dict - recursively serialize
     if isinstance(result, dict):
-        return {k: serialize_result(v, artifacts) for k, v in result.items()}
+        return {k: serialize_result(v, artifacts, max_rows) for k, v in result.items()}
 
     # List/tuple - recursively serialize
     if isinstance(result, (list, tuple)):
-        return [serialize_result(item, artifacts) for item in result]
+        return [serialize_result(item, artifacts, max_rows) for item in result]
 
     # Numpy types
     if hasattr(result, "item"):
@@ -322,6 +327,7 @@ def execute_function(
     module_name: str,
     function_name: str,
     params: dict[str, Any] | None = None,
+    max_rows: int | None = None,
 ) -> dict[str, Any]:
     """Execute an astroquery function dynamically.
 
@@ -329,11 +335,20 @@ def execute_function(
         module_name: Short module name (e.g., 'simbad')
         function_name: Method name (e.g., 'query_object')
         params: Parameters to pass to the function
+        max_rows: Maximum rows kept per result table (None = no limit)
 
     Returns:
         Serialized result with metadata.
     """
     params = params or {}
+    if max_rows is not None and max_rows < 1:
+        raise MCPError(
+            code=ErrorCode.VALIDATION_ERROR,
+            message=f"max_rows must be at least 1, got {max_rows}",
+            service="executor",
+            recoverable=False,
+            suggestion="Pass a positive max_rows, or narrow the query",
+        )
 
     try:
         # Configure authentication on-demand for services that need it
@@ -379,7 +394,7 @@ def execute_function(
 
             # Serialize the result; products become artifacts, files written to the call dir too
             _note_table_urls(result, artifacts)
-            serialized = serialize_result(result, artifacts)
+            serialized = serialize_result(result, artifacts, max_rows)
             artifacts.collect_dir()
         finally:
             artifacts.cleanup_if_empty()

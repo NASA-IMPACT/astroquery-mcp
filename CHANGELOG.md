@@ -39,6 +39,12 @@ uses [Semantic Versioning](https://semver.org/).
 - `CHANGELOG.md`.
 
 ### Changed
+- `astroquery_execute`'s `max_rows` (default 20) now applies to every table in every result,
+  for all modules, including lists of tables and tables nested in dicts. Previously it only
+  applied to MAST `query_region`, so e.g. a MAST `get_product_list` could return thousands of
+  rows (millions of characters). Tables are cut before conversion and report `row_count`,
+  `total_rows` and `truncated`. `max_rows` below 1 is a validation error. Calls that used to
+  return more than 20 rows now need a larger `max_rows`.
 - Supported Python lowered from 3.13+ to **3.10+**. On Python 3.10 the resolver selects
   astropy 6.1.x and numpy 2.2.x, since astropy 7.x and numpy 2.3+ need Python 3.11.
 - Packages the code imports directly are now declared as direct dependencies instead of being

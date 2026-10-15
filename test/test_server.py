@@ -3,7 +3,9 @@
 import asyncio
 
 import pytest
+from astropy.table import Table
 
+import executor
 import server
 
 EXPECTED_TOOLS = {
@@ -44,20 +46,28 @@ def test_check_auth_does_not_return_token_values(monkeypatch):
     assert "SECRET" not in repr(result)
 
 
-def test_mast_query_region_is_truncated(monkeypatch):
-    rows = [{"obsid": i} for i in range(50)]
+class FakeCatalog:
+    @staticmethod
+    def query_tap(query):
+        return Table({"obsid": list(range(50))})
 
-    def fake_execute(module_name, function_name, params):
-        return {
-            "success": True,
-            "module": module_name,
-            "function": function_name,
-            "params": params,
-            "result": {"columns": [], "data": rows, "meta": {}, "row_count": 50},
-        }
 
-    monkeypatch.setattr(server, "execute_function", fake_execute)
-    result = server.astroquery_execute.fn("mast", "query_region", {}, max_rows=5)["result"]
-    assert len(result["data"]) == 5
+@pytest.mark.parametrize("module_name", ["mast", "simbad", "vizier"])
+def test_every_module_is_truncated_to_max_rows(monkeypatch, module_name):
+    monkeypatch.setattr(executor, "get_class_instance", lambda name: FakeCatalog)
+    result = server.astroquery_execute.fn(module_name, "query_tap", {"query": "q"}, max_rows=5)["result"]
+    assert [row["obsid"] for row in result["data"]] == [0, 1, 2, 3, 4]
+    assert result["row_count"] == 5
     assert result["total_rows"] == 50
     assert result["truncated"] is True
+
+
+def test_default_max_rows_is_20(monkeypatch):
+    monkeypatch.setattr(executor, "get_class_instance", lambda name: FakeCatalog)
+    result = server.astroquery_execute.fn("simbad", "query_tap", {"query": "q"})["result"]
+    assert result["row_count"] == 20
+
+
+def test_invalid_max_rows_is_a_validation_error():
+    result = server.astroquery_execute.fn("simbad", "query_tap", {"query": "q"}, max_rows=0)
+    assert result["code"] == "VALIDATION_ERROR"

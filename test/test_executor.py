@@ -71,6 +71,34 @@ class TestSerializeResult:
         assert serialize_result({"x": [np.float64(1.5)]}) == {"x": [1.5]}
 
 
+class TestMaxRows:
+    big = Table({"a": list(range(30))})
+
+    def test_single_table(self):
+        result = serialize_result(self.big, max_rows=10)
+        assert (result["row_count"], result["total_rows"], result["truncated"]) == (10, 30, True)
+        assert result["data"][-1] == {"a": 9}
+
+    def test_small_table_not_marked_truncated(self):
+        result = serialize_result(Table({"a": [1, 2]}), max_rows=10)
+        assert (result["row_count"], result["total_rows"], result["truncated"]) == (2, 2, False)
+
+    def test_list_of_tables(self):
+        # VizieR returns a TableList (a list of tables)
+        result = serialize_result([self.big, self.big], max_rows=3)
+        assert [r["row_count"] for r in result] == [3, 3]
+
+    def test_tables_nested_in_dict(self):
+        # Gaia load_data returns {name: [Table, ...]}
+        result = serialize_result({"epoch_photometry": [self.big]}, max_rows=4)
+        assert result["epoch_photometry"][0]["row_count"] == 4
+
+    def test_no_limit_by_default(self):
+        result = serialize_result(self.big)
+        assert result["row_count"] == 30
+        assert "truncated" not in result
+
+
 class TestDispatch:
     def test_unknown_module(self):
         with pytest.raises(MCPError) as exc:

@@ -305,6 +305,15 @@ export API_DEV_KEY="your-ads-token"
 export MAST_TOKEN="your-mast-token"
 ```
 
+### Result Size (`max_rows`)
+
+`astroquery_execute` keeps at most `max_rows` rows (default 20) in **every** table of a result,
+for all modules: a single table, a list of tables (VizieR), or tables nested in a dict (Gaia
+`load_data`). Each table reports `row_count` (rows returned), `total_rows` and `truncated`.
+Raise `max_rows` or narrow the query (smaller radius, filters, `TOP` in ADQL) to get more rows.
+For example, a MAST `get_product_list` with 6,342 products drops from about 4.1 million
+characters to about 14,000 with the default.
+
 ### Science Products (Artifacts)
 
 Functions are labeled by `astroquery_list_functions` as either:
