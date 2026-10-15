@@ -16,7 +16,6 @@ def test_auth():
     api_key = os.environ.get("API_DEV_KEY")
     if api_key:
         print(f"   ✓ API_DEV_KEY is set (length: {len(api_key)})")
-        print(f"   First 10 chars: {api_key[:10]}...")
     else:
         print("   ✗ API_DEV_KEY is NOT set")
         print("\n   To fix:")

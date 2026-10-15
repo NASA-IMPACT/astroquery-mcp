@@ -41,9 +41,9 @@ def get_token(service: str) -> str | None:
         logger.info(f"[get_token] Token length: {len(token)}")
     else:
         logger.warning(f"[get_token] Environment variable {token_env} is not set or is empty")
-        # List all env vars that start with API or ADS for debugging
-        relevant_vars = {k: v[:10] + "..." if v else None for k, v in os.environ.items() if k.startswith(("API", "ADS"))}
-        logger.warning(f"[get_token] Available API/ADS env vars: {relevant_vars}")
+        # List names (never values) of env vars that start with API or ADS for debugging
+        relevant_vars = sorted(k for k in os.environ if k.startswith(("API", "ADS")))
+        logger.warning(f"[get_token] Available API/ADS env var names: {relevant_vars}")
 
     return token
 
@@ -111,8 +111,6 @@ def configure_astroquery_auth() -> dict[str, Any]:
 
             configured["ads"] = True
             logger.info("[configure_auth] ✓ ADS authentication configured successfully")
-            logger.info(f"[configure_auth] ADS.TOKEN is now: {ADS.TOKEN[:10]}...")
-            logger.info(f"[configure_auth] API_DEV_KEY env var is now: {os.environ['API_DEV_KEY'][:10]}...")
         except ImportError as e:
             configured["ads"] = False
             logger.error(f"[configure_auth] ✗ Failed to import ADS module: {e}")
