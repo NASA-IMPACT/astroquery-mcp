@@ -3,6 +3,7 @@
 import inspect
 import importlib
 import logging
+import re
 from typing import Any, Callable, get_type_hints
 from dataclasses import dataclass, field
 
@@ -66,6 +67,18 @@ QUERY_METHOD_PREFIXES = (
     "add_", "find_",
 )
 
+# Methods that fetch science products (files) rather than metadata. Their results are stored as
+# artifacts and returned as descriptors; see executor.py and artifacts.py.
+RETRIEVAL_METHOD_RE = re.compile(
+    r"^(download_|get_images|get_spectra|get_spectral_template|get_product$|"
+    r"get_files_from_tarballs$|load_data$|save_results$)"
+)
+
+
+def function_kind(method_name: str) -> str:
+    """'retrieval' for methods that fetch science products, else 'metadata'."""
+    return "retrieval" if RETRIEVAL_METHOD_RE.match(method_name) else "metadata"
+
 
 @dataclass
 class ParameterInfo:
@@ -87,6 +100,7 @@ class FunctionInfo:
     description: str
     parameters: list[ParameterInfo] = field(default_factory=list)
     callable: Callable | None = None
+    kind: str = "metadata"
 
 
 def get_type_hint_str(hint: Any) -> str:
@@ -213,6 +227,7 @@ def introspect_class(module_name: str, class_path: str) -> list[FunctionInfo]:
                     description=docstring.split("\n")[0] if docstring else f"{class_name}.{method_name}",
                     parameters=params,
                     callable=method,
+                    kind=function_kind(method_name),
                 )
                 functions.append(func_info)
 

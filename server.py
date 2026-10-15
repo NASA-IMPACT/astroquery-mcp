@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from fastmcp import FastMCP
 
+from artifacts import RESOURCE_URI, get_store
 from auth import configure_astroquery_auth
 from executor import (
     execute_function,
@@ -59,6 +60,16 @@ Example generic workflow:
 
 Note: Generic astroquery_execute() for ADS returns every field ADS has for each paper.
 Use ads_query_compact() instead for shorter results.
+
+## Science products (FITS images, spectra, tarballs)
+Functions are either kind="metadata" (catalog rows, product lists: returned inline) or
+kind="retrieval" (download_*, get_images, get_spectra, get_product, ...: fetch files).
+Retrieval results never contain file contents. Each file is saved on the server and described
+in the response's "artifacts" list: archive, product_id, filename, content_type, size_bytes,
+sha256, download_url (archive URL when known), local_path, resource_uri, and for FITS a short
+header summary. Discover with metadata functions first (e.g. mast get_product_list), then
+retrieve only what is needed. The file bytes are available via the resource_uri
+(astroquery://artifacts/{artifact_id}) for the client, not for the model context.
 """,
 )
 
@@ -113,7 +124,9 @@ def astroquery_list_functions(module_name: str | None = None) -> dict[str, Any]:
                     If None, lists all functions from all modules.
 
     Returns:
-        Dict with function_count and list of functions with name, description, parameters.
+        Dict with function_count and list of functions with name, kind, description,
+        parameters. kind is "metadata" (results returned inline) or "retrieval" (fetches
+        files, which are returned as artifact descriptors).
     """
     try:
         return list_functions(module_name)
@@ -196,7 +209,14 @@ def astroquery_execute(
             The response reports total_rows and truncated so callers can tell.
 
     Returns:
-        Dict with success status and serialized result (tables converted to dicts).
+        Dict with success status, kind ("metadata" or "retrieval") and serialized result
+        (tables converted to dicts). Science products (FITS images and spectra, downloaded
+        files, binary data, large arrays) are never inlined: in "result" they appear as
+        {"artifact_id", "filename"} references, and the response's "artifacts" list describes
+        each file with archive, product_id, filename, content_type, content_encoding,
+        size_bytes, sha256, download_url, local_path, resource_uri and, for FITS files,
+        fits_summary (HDU names/shapes and key header cards). Retrieval functions save files
+        in a fresh folder of the server's artifact store unless you pass an output folder.
 
     Examples:
         # SIMBAD object query
@@ -218,6 +238,12 @@ def astroquery_execute(
         astroquery_execute("vizier", "query_object", {
             "object_name": "M31",
             "catalog": "II/246"
+        })
+
+        # Retrieval: SDSS images come back as artifact descriptors, not pixel data
+        astroquery_execute("sdss", "get_images", {
+            "coordinates": {"ra": 179.689, "dec": -0.454},
+            "band": "r"
         })
     """
     try:
@@ -340,6 +366,18 @@ def ads_get_paper(
         return get_paper_details(bibcode, fields)
     except Exception as e:
         return handle_error(e)
+
+
+@mcp.resource(
+    RESOURCE_URI,
+    name="artifact",
+    mime_type="application/octet-stream",
+    description="Raw bytes of a science product saved by a retrieval call. The artifact's "
+    "descriptor (content_type, sha256, size_bytes) is in the astroquery_execute response.",
+)
+def read_artifact(artifact_id: str) -> bytes:
+    """Return the stored file for an artifact ID from an astroquery_execute response."""
+    return get_store().read_bytes(artifact_id)
 
 
 def main():

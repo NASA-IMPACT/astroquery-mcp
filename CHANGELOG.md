@@ -13,6 +13,20 @@ uses [Semantic Versioning](https://semver.org/).
   Logs now show variable names and whether a token is set, never the value.
 
 ### Added
+- Science products are returned as artifacts instead of being put into the model context.
+  FITS images and spectra, downloaded files, binary payloads and large arrays are saved in an
+  artifact store (per-user cache dir; `ASTROQUERY_MCP_ARTIFACT_DIR` or config `artifacts.dir`
+  to override) and described by archive, product ID, filename, content type, size, sha256,
+  original download URL, local path, MCP resource URI, and a FITS header summary.
+  Previously FITS results serialized as unusable `"<PrimaryHDU object at 0x...>"` strings and
+  binary bytes were decoded into the response as text.
+- `astroquery://artifacts/{artifact_id}` MCP resource serving an artifact's bytes to the
+  client, outside the model context.
+- Every function is labeled `kind: "metadata"` or `kind: "retrieval"` in
+  `astroquery_list_functions`, `astroquery_get_function_info` and `astroquery_execute`
+  responses, separating discovery from product retrieval.
+- Retrieval calls run in their own folder in the artifact store, so archives that write to the
+  current directory (XMM-Newton, ESA JWST, Gaia) no longer drop files wherever the server runs.
 - Offline test suite (`uv run pytest`, no network) covering auth, configuration, argument
   conversion and result serialization, table/coordinate helpers, ADS result filtering, the MCP
   tool registry, and an import check for every module. Includes a regression test that secrets
@@ -39,6 +53,8 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - `retry.py` and `http_client.py` could not be imported because `tenacity` was never installed.
+- Serializing array-valued Quantities and numpy arrays no longer fails (`float()`/`.item()` on
+  arrays raised an error).
 
 ## [0.1.0] - 2026-09-28
 

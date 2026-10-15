@@ -305,6 +305,62 @@ export API_DEV_KEY="your-ads-token"
 export MAST_TOKEN="your-mast-token"
 ```
 
+### Science Products (Artifacts)
+
+Functions are labeled by `astroquery_list_functions` as either:
+
+- **`metadata`**: catalog rows, product lists, URLs. Results are returned inline, sized for the
+  model's context. Use these to discover what exists (e.g. MAST `get_product_list`, which
+  lists every product with its `dataURI`).
+- **`retrieval`**: `download_*`, `get_images`, `get_spectra`, `get_product`, ... These fetch
+  files. File contents are **never** returned to the model.
+
+Each file a retrieval call produces is saved in the artifact store and described in the
+response's `artifacts` list:
+
+```json
+{
+  "artifact_id": "c1931e4c4cf75a42",
+  "archive": "sdss",
+  "product_id": "frame-r-000756-2-0427",
+  "filename": "frame-r-000756-2-0427.fits",
+  "content_type": "application/fits",
+  "content_encoding": null,
+  "size_bytes": 12447360,
+  "sha256": "c1931e4c4cf75a42...",
+  "download_url": "https://data.sdss.org/sas/dr17/eboss/photoObj/frames/301/756/2/frame-r-000756-2-0427.fits.bz2",
+  "local_path": "~/Library/Caches/astroquery-mcp/artifacts/downloads/.../frame-r-000756-2-0427.fits",
+  "resource_uri": "astroquery://artifacts/c1931e4c4cf75a42",
+  "fits_summary": {"hdus": [{"index": 0, "name": "PRIMARY", "type": "PrimaryHDU", "shape": [1489, 2048]}], "header": {"TELESCOP": "..."}}
+}
+```
+
+- `download_url` is the archive's original URL when the archive reports it. MAST
+  `download_products` does not, but the `dataURI` from `get_product_list` identifies the file.
+- `resource_uri` is an MCP resource: MCP clients read the file's bytes through it,
+  outside the model's context. Works whether the server runs locally or remotely.
+- `fits_summary` (FITS files only) lists HDU names, types and shapes plus a few primary-header
+  cards (TELESCOP, INSTRUME, OBJECT, DATE-OBS, EXPTIME, ...). Only headers are read.
+- In-memory products are stored the same way: FITS `HDUList`s, binary payloads, and numpy
+  arrays over 1000 elements (saved as `.npy`). Text payloads up to 4 KB stay inline.
+- For NED/SDSS `get_images`/`get_spectra`, the server calls the `_async` variant so the
+  original URL is kept.
+
+**Where files go.** Each retrieval call writes into its own new folder:
+`<store>/downloads/<UTC time>-<archive>-<id>/`. The call runs in that folder, and output-folder
+parameters (`download_dir`, `savedir`, `folder`, `location`) point there unless you pass your
+own. The store is, in order of priority:
+
+1. `ASTROQUERY_MCP_ARTIFACT_DIR` environment variable
+2. `artifacts.dir` in the YAML config (`ASTROQUERY_MCP_CONFIG`)
+3. The per-user cache dir: `~/Library/Caches/astroquery-mcp/artifacts` (macOS),
+   `$XDG_CACHE_HOME` or `~/.cache/astroquery-mcp/artifacts` (Linux),
+   `%LOCALAPPDATA%\astroquery-mcp\artifacts` (Windows)
+
+Files are not deleted automatically; remove old folders under `downloads/` when needed.
+Because every call gets a fresh folder, astroquery's "already downloaded" cache does not
+apply across calls.
+
 ### Testing
 
 ```bash

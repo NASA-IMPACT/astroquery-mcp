@@ -59,6 +59,16 @@ class SimbadConfig(BaseModel):
     resolvers: ResolverConfig = Field(default_factory=ResolverConfig)
 
 
+class ArtifactsConfig(BaseModel):
+    """Where downloaded science products are stored."""
+
+    dir: str | None = Field(
+        default=None,
+        description="Artifact store directory; None uses the per-user cache dir. "
+        "ASTROQUERY_MCP_ARTIFACT_DIR overrides this.",
+    )
+
+
 class ServiceConfig(BaseModel):
     """Complete service configuration."""
 
@@ -68,6 +78,7 @@ class ServiceConfig(BaseModel):
     defaults: DefaultsConfig = Field(default_factory=DefaultsConfig)
     rate_limits: dict[str, RateLimitConfig] = Field(default_factory=dict)
     simbad: SimbadConfig = Field(default_factory=SimbadConfig)
+    artifacts: ArtifactsConfig = Field(default_factory=ArtifactsConfig)
 
 
 def get_default_config() -> dict[str, Any]:

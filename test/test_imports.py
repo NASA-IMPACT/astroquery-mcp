@@ -6,6 +6,7 @@ import pytest
 
 MODULES = [
     "ads_tools",
+    "artifacts",
     "auth",
     "config",
     "errors",
