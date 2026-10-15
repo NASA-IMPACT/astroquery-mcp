@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Compare token usage between generic executor and optimized ADS tools."""
 
+import pytest
+
+pytestmark = pytest.mark.network  # calls live services; run with `pytest -m network`
+
 import json
 import sys
 from auth import configure_astroquery_auth

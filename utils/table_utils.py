@@ -72,14 +72,16 @@ def table_to_records(table: Table | None) -> list[dict[str, Any]]:
     return records
 
 
-def table_to_dict(table: Table | None) -> dict[str, Any]:
+def table_to_dict(table: Table | None, max_rows: int | None = None) -> dict[str, Any]:
     """Convert an Astropy Table to a dictionary with metadata.
 
     Args:
         table: Astropy Table to convert.
+        max_rows: If set, convert only the first max_rows rows and add 'total_rows' and
+            'truncated' so callers can tell rows were dropped.
 
     Returns:
-        Dictionary with 'columns', 'data', and 'meta' keys.
+        Dictionary with 'columns', 'data', 'meta' and 'row_count' (rows in 'data') keys.
     """
     if table is None:
         return {"columns": [], "data": [], "meta": {}, "row_count": 0}
@@ -97,8 +99,9 @@ def table_to_dict(table: Table | None) -> dict[str, Any]:
             col_info["description"] = table[col].description
         columns.append(col_info)
 
-    # Convert data
-    data = table_to_records(table)
+    # Convert data (truncate first so huge tables are never fully converted)
+    total_rows = len(table)
+    data = table_to_records(table[:max_rows] if max_rows is not None else table)
 
     # Extract metadata
     meta = {}
@@ -106,12 +109,16 @@ def table_to_dict(table: Table | None) -> dict[str, Any]:
         for key, value in table.meta.items():
             meta[key] = _make_serializable(value)
 
-    return {
+    result = {
         "columns": columns,
         "data": data,
         "meta": meta,
-        "row_count": len(table),
+        "row_count": len(data),
     }
+    if max_rows is not None:
+        result["total_rows"] = total_rows
+        result["truncated"] = total_rows > len(data)
+    return result
 
 
 def select_columns(

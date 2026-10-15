@@ -427,7 +427,7 @@ def main() -> None:
     parser.add_argument("--wiki-dir", type=Path, default=ROOT / "build" / "wiki")
     args = parser.parse_args()
 
-    # Importing server/astroquery is noisy (and auth logs token hints); keep output clean.
+    # Importing server/astroquery is noisy; keep output clean.
     logging.disable(logging.CRITICAL)
     instructions, tools = collect_tools()
     archives = collect_archives()

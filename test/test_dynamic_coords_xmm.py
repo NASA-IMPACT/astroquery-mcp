@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Test dynamic discovery of coordinates and XMM Newton modules."""
 
+import pytest
+
+pytestmark = pytest.mark.network  # calls live services; run with `pytest -m network`
+
 from executor import list_modules, list_functions, execute_function
 
 

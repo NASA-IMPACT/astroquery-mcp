@@ -1,0 +1,74 @@
+name: Tests
+
+# Offline tests run on every PR into main and again on main after each merge. Make the
+# "Offline tests" check required in main's branch protection so a failing run blocks the merge.
+# No path filter here: a required check that never runs leaves the PR stuck as "pending".
+# Live tests hit real archives (ADS, SIMBAD, XMM, ...) and only run on manual trigger.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Also run tests that call live services"
+        type: boolean
+        default: false
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-matrix:
+    name: Offline tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --group dev --frozen
+      - run: uv run pytest -v
+
+  # Oldest Python + the minimum versions pyproject.toml allows, so the declared floors stay true
+  min-versions:
+    name: Offline tests (minimum versions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.10"
+      - run: uv pip compile pyproject.toml --group dev --resolution lowest-direct -p 3.10 -o lowest.txt
+      - run: uv venv && uv pip install -r lowest.txt
+      - run: .venv/bin/python scripts/check_api_compat.py
+      - run: .venv/bin/python -m pytest -v
+
+  # Single stable check name for branch protection, independent of the jobs above
+  offline:
+    name: Offline tests
+    if: always()
+    needs: [offline-matrix, min-versions]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.offline-matrix.result }}" = success
+      - run: test "${{ needs.min-versions.result }}" = success
+
+  live:
+    name: Live tests
+    if: github.event_name == 'workflow_dispatch' && inputs.live
+    runs-on: ubuntu-latest
+    env:
+      API_DEV_KEY: ${{ secrets.API_DEV_KEY }}
+      MAST_TOKEN: ${{ secrets.MAST_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group dev --frozen
+      - run: uv run pytest -v -m network
