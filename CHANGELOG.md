@@ -39,6 +39,8 @@ uses [Semantic Versioning](https://semver.org/).
 - `CHANGELOG.md`.
 
 ### Changed
+- GitHub Actions updated to Node.js 24 releases (checkout v7, setup-uv v10.3.0, upload-artifact v7,
+  download-artifact v8, upload-pages-artifact v5, deploy-pages v5); Node.js 20 is deprecated on GitHub.
 - `astroquery_execute`'s `max_rows` (default 20) now applies to every table in every result,
   for all modules, including lists of tables and tables nested in dicts. Previously it only
   applied to MAST `query_region`, so e.g. a MAST `get_product_list` could return thousands of
