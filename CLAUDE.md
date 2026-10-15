@@ -23,7 +23,8 @@
 - `retry.py` - Retry logic
 - `models/` - Data models (errors, results)
 - `utils/` - Helpers (async, coordinates, table serialization)
-- `test/` - Tests
+- `test/` - Tests. `uv run pytest` runs offline tests only; live-service tests are marked `network` (`uv run pytest -m network`)
+- `.github/workflows/tests.yml` - Offline tests on every PR into main and on main after merge (required check); live tests on manual trigger
 
 **Docs** (generated, never hand-edit the reference pages):
 - `scripts/gen_docs.py` - Builds reference pages from the FastMCP tool registry + `discover_all_functions()`

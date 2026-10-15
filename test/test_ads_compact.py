@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Test script to verify ads_query_compact and ads_get_paper work correctly."""
 
+import pytest
+
+pytestmark = pytest.mark.network  # calls live services; run with `pytest -m network`
+
 import os
 import sys
 from ads_tools import query_ads_compact, get_paper_details, FIELD_PRESETS

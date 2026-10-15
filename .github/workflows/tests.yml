@@ -1,0 +1,44 @@
+name: Tests
+
+# Offline tests run on every PR into main and again on main after each merge. Make the
+# "Offline tests" check required in main's branch protection so a failing run blocks the merge.
+# No path filter here: a required check that never runs leaves the PR stuck as "pending".
+# Live tests hit real archives (ADS, SIMBAD, XMM, ...) and only run on manual trigger.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Also run tests that call live services"
+        type: boolean
+        default: false
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline:
+    name: Offline tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group dev --frozen
+      - run: uv run pytest -v
+
+  live:
+    name: Live tests
+    if: github.event_name == 'workflow_dispatch' && inputs.live
+    runs-on: ubuntu-latest
+    env:
+      API_DEV_KEY: ${{ secrets.API_DEV_KEY }}
+      MAST_TOKEN: ${{ secrets.MAST_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group dev --frozen
+      - run: uv run pytest -v -m network

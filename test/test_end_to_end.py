@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """End-to-end test simulating real MCP client usage."""
 
+import pytest
+
+pytestmark = pytest.mark.network  # calls live services; run with `pytest -m network`
+
 from ads_tools import query_ads_compact, get_paper_details
 from executor import execute_function
 from auth import configure_astroquery_auth

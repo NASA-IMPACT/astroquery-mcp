@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Test script to verify ADS authentication is working."""
 
+import pytest
+
+pytestmark = pytest.mark.network  # calls live services; run with `pytest -m network`
+
 import os
 import sys
 
