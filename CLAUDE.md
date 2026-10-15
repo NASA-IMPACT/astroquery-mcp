@@ -24,7 +24,12 @@
 - `models/` - Data models (errors, results)
 - `utils/` - Helpers (async, coordinates, table serialization)
 - `test/` - Tests. `uv run pytest` runs offline tests only; live-service tests are marked `network` (`uv run pytest -m network`)
-- `.github/workflows/tests.yml` - Offline tests on every PR into main and on main after merge (required check); live tests on manual trigger
+- `.github/workflows/tests.yml` - Offline tests on every PR into main and on main after merge (required check), on Python 3.10-3.13 plus minimum dependency versions; live tests on manual trigger
+- `scripts/check_api_compat.py` - Static check that every third-party name/kwarg the code uses exists in the installed versions; CI runs it against the minimum versions
+
+## Compatibility
+- Supports Python 3.10+. Floors in `pyproject.toml` are tested in CI, so don't use APIs newer than them (e.g. astropy 7.x-only features) without raising the floor and updating README + CHANGELOG
+- Record user-visible changes in `CHANGELOG.md` under `[Unreleased]`
 
 **Docs** (generated, never hand-edit the reference pages):
 - `scripts/gen_docs.py` - Builds reference pages from the FastMCP tool registry + `discover_all_functions()`

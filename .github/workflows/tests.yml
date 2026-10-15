@@ -21,14 +21,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  offline:
-    name: Offline tests
+  offline-matrix:
+    name: Offline tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --group dev --frozen
+      - run: uv run pytest -v
+
+  # Oldest Python + the minimum versions pyproject.toml allows, so the declared floors stay true
+  min-versions:
+    name: Offline tests (minimum versions)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --group dev --frozen
-      - run: uv run pytest -v
+        with:
+          python-version: "3.10"
+      - run: uv pip compile pyproject.toml --group dev --resolution lowest-direct -p 3.10 -o lowest.txt
+      - run: uv venv && uv pip install -r lowest.txt
+      - run: .venv/bin/python scripts/check_api_compat.py
+      - run: .venv/bin/python -m pytest -v
+
+  # Single stable check name for branch protection, independent of the jobs above
+  offline:
+    name: Offline tests
+    if: always()
+    needs: [offline-matrix, min-versions]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.offline-matrix.result }}" = success
+      - run: test "${{ needs.min-versions.result }}" = success
 
   live:
     name: Live tests

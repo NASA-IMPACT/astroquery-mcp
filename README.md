@@ -257,6 +257,25 @@ name = "your-package-mcp"
 
 ## Installation & Usage
 
+### Requirements
+
+Python **3.10 or newer**. Direct dependencies and the oldest versions CI tests against:
+
+| Package | Minimum | Notes |
+|---------|---------|-------|
+| astropy | 6.1 | Python 3.10 resolves to astropy 6.1.x; 3.11+ gets 7.x |
+| astroquery | 0.4.10 | |
+| fastmcp | 2.14.2 | |
+| mcp | 1.25.0 | |
+| numpy | 1.24 | |
+| httpx | 0.28.1 | Required by fastmcp 2.14.2 |
+| pydantic | 2.11.7 | Required by fastmcp 2.14.2 |
+| pyyaml | 6.0 | |
+| tenacity | 8.2 | |
+
+Every name the code uses from these packages is checked against the minimum versions by
+`scripts/check_api_compat.py` (see [Testing](#testing)).
+
 ### Install Dependencies
 
 ```bash
@@ -285,6 +304,34 @@ For services requiring authentication:
 export API_DEV_KEY="your-ads-token"
 export MAST_TOKEN="your-mast-token"
 ```
+
+### Testing
+
+```bash
+uv run pytest              # offline tests: no network, about 2 seconds
+uv run pytest -m network   # live tests against ADS, SIMBAD, XMM, ... (needs API_DEV_KEY)
+```
+
+CI (`.github/workflows/tests.yml`) runs on every pull request into `main` and again on `main`
+after each merge. Merging is blocked unless the **Offline tests** check passes, which requires:
+
+- the offline tests passing on Python 3.10, 3.11, 3.12 and 3.13, and
+- a **minimum versions** job: install the oldest dependency versions allowed by
+  `pyproject.toml` on Python 3.10, run `scripts/check_api_compat.py`, then the offline tests.
+
+`scripts/check_api_compat.py` reads the source without running it, collects every
+third-party import, attribute (`u.arcmin`, `SkyCoord.from_name`) and keyword argument the
+code uses, and confirms each one exists in the installed versions. To check locally against
+the minimum versions:
+
+```bash
+uv pip compile pyproject.toml --group dev --resolution lowest-direct -p 3.10 -o /tmp/lowest.txt
+uv venv -p 3.10 /tmp/lowest && VIRTUAL_ENV=/tmp/lowest uv pip install -r /tmp/lowest.txt
+/tmp/lowest/bin/python scripts/check_api_compat.py && /tmp/lowest/bin/python -m pytest
+```
+
+Live tests run only when started by hand: Actions → Tests → Run workflow → tick **live**.
+They need the `API_DEV_KEY` (and optionally `MAST_TOKEN`) repository secrets.
 
 ### Use with Claude Desktop
 
