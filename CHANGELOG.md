@@ -69,7 +69,7 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [0.1.0] - 2026-09-28
 
-Initial public release under NASA IMPACT: dynamic astroquery MCP server, ADS compact tools,
+Initial public release under ODSI: dynamic astroquery MCP server, ADS compact tools,
 Sphinx documentation site and GitHub wiki generated from tool docstrings.
 
 [Unreleased]: https://github.com/NASA-IMPACT/astroquery-mcp/compare/v0.1.0...HEAD
