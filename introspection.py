@@ -178,7 +178,21 @@ def introspect_class(module_name: str, class_path: str) -> list[FunctionInfo]:
             if method_name.startswith("_") or method_name in SKIP_METHODS:
                 continue
 
-            method = getattr(cls, method_name, None)
+            # Skip properties without evaluating them: some query network services on
+            # access (e.g. Simbad.hardlimit fetches TAP capabilities), and one failing
+            # would otherwise abort introspection of the whole class
+            try:
+                static_attr = inspect.getattr_static(cls, method_name)
+            except AttributeError:
+                continue
+            if isinstance(static_attr, property):
+                continue
+
+            try:
+                method = getattr(cls, method_name, None)
+            except Exception as e:
+                logger.debug(f"Could not access {class_name}.{method_name}: {e}")
+                continue
             if method is None or not callable(method):
                 continue
 
