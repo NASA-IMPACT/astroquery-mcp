@@ -63,6 +63,9 @@ uses [Semantic Versioning](https://semver.org/).
 - `retry.py` and `http_client.py` could not be imported because `tenacity` was never installed.
 - Serializing array-valued Quantities and numpy arrays no longer fails (`float()`/`.item()` on
   arrays raised an error).
+- Discovering an archive's functions no longer reads its properties. SIMBAD's `hardlimit`
+  property calls the TAP capabilities endpoint, so when that endpoint was down every SIMBAD
+  tool disappeared; discovery also no longer makes network requests at startup.
 
 ## [0.1.0] - 2026-09-28
 

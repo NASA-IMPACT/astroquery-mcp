@@ -130,6 +130,26 @@ class TestDispatch:
         assert info["method"] == "query_object"
         assert "object_name" in {p["name"] for p in info["parameters"]}
 
+    def test_introspection_does_not_evaluate_properties(self, monkeypatch):
+        # Simbad.hardlimit fetches TAP capabilities on access; an outage there once hid every SIMBAD tool
+        import sys
+        import types
+
+        class FakeArchive:
+            @property
+            def hardlimit(self):
+                raise RuntimeError("capabilities endpoint returned 404")
+
+            def query_object(self, object_name):
+                """Query an object."""
+
+        fake_module = types.ModuleType("fake_archive")
+        setattr(fake_module, "FakeArchive", FakeArchive())
+        monkeypatch.setitem(sys.modules, "fake_archive", fake_module)
+
+        functions = introspect_class("fake", "fake_archive.FakeArchive")
+        assert [f.method_name for f in functions] == ["query_object"]
+
     def test_get_function_info_unknown(self, monkeypatch):
         monkeypatch.setattr(executor, "discover_all_functions", lambda: {"simbad": []})
         assert "error" in get_function_info("simbad", "no_such_function")
