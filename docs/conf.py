@@ -14,8 +14,8 @@ version = release = os.environ.get("DOCS_VERSION") or os.environ.get("READTHEDOC
 subprocess.run([sys.executable, str(ROOT / "scripts" / "gen_docs.py"), "--version", release], check=True)
 
 project = "astroquery-mcp"
-author = "NASA IMPACT"
-copyright = "NASA IMPACT"
+author = "ODSI"
+copyright = "ODSI"
 
 extensions = [
     "myst_parser",

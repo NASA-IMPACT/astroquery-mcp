@@ -1,6 +1,6 @@
 # Astroquery MCP Server
 
-A Model Context Protocol (MCP) server that dynamically exposes all astroquery functionality to AI assistants. This server uses introspection to discover and expose Python package functionality through MCP tools, making it a reusable template for creating MCP servers for any Python library.
+A Model Context Protocol (MCP) server that dynamically exposes all astroquery functionality to SI assistants. This server uses introspection to discover and expose Python package functionality through MCP tools, making it a reusable template for creating MCP servers for any Python library.
 
 > Part of **AI Agents for Science** (Accelerated Knowledge Discovery — AKD). This MCP server is the
 > data-access backend for the [**AKD Astro Data Search Agent**](https://huggingface.co/spaces/ai-agents-for-science/astro-data-search-agent),
@@ -11,9 +11,9 @@ A Model Context Protocol (MCP) server that dynamically exposes all astroquery fu
 
 This is an MCP server that:
 - **Dynamically discovers** all functions from astroquery modules using Python introspection
-- **Exposes them as MCP tools** that AI assistants can call
+- **Exposes them as MCP tools** that SI assistants can call
 - **Handles parameter conversion** (e.g., coordinates, units) automatically
-- **Serializes results** (Astropy Tables → JSON) for AI consumption
+- **Serializes results** (Astropy Tables → JSON) for SI consumption
 - Provides a **reusable pattern** for wrapping any Python package as an MCP server
 
 ## Available Astroquery Modules
@@ -51,7 +51,7 @@ For the complete, always-current list of MCP tools, archives and functions with 
 
 ```
 ┌─────────────────┐
-│  AI Assistant   │
+│  SI Assistant   │
 └────────┬────────┘
          │ MCP Protocol
 ┌────────▼────────────────────────────────────────┐
@@ -450,7 +450,7 @@ mcp = FastMCP(
 )
 ```
 
-Now AI assistants can call:
+Now SI assistants can call:
 ```python
 execute("io", "read_csv", {"filepath_or_buffer": "data.csv"})
 execute("dataframe", "describe", {})
@@ -609,7 +609,7 @@ JSON dict → Python objects → Function call → Result → JSON dict
 1. **Zero boilerplate** - No need to manually write MCP tools for each function
 2. **Automatic updates** - New package functions are automatically exposed
 3. **Type safety** - Introspection captures parameter types and defaults
-4. **Discoverable** - AI can explore available functions via `list_functions`
+4. **Discoverable** - SI can explore available functions via `list_functions`
 5. **Reusable** - Same pattern works for any Python package
 6. **Maintainable** - Changes to the package are automatically reflected
 
@@ -763,7 +763,7 @@ astroquery_execute("heasarc", "query_tap", {"query": "SELECT * FROM chandra_obse
 If you use this software in your research, please cite it as:
 
 ```
-Astroquery MCP Server. NASA IMPACT.
+Astroquery MCP Server. ODSI.
 https://github.com/NASA-IMPACT/astroquery-mcp
 ```
 
@@ -771,14 +771,14 @@ https://github.com/NASA-IMPACT/astroquery-mcp
 
 - **Gaurab Panthee** ([@igaurab](https://github.com/igaurab)) — original author
 - **Ashkbiz Danehkar** ([@danehkar](https://github.com/danehkar)) — astrophysics domain expertise; Universities Space Research Association
-- **Nish** ([@NISH1001](https://github.com/NISH1001)) — NASA IMPACT / UAH
-- **Muthukumaran R** ([@muthukumaranR](https://github.com/muthukumaranR)) — NASA IMPACT
+- **Nish** ([@NISH1001](https://github.com/NISH1001)) — ODSI / UAH
+- **Muthukumaran R** ([@muthukumaranR](https://github.com/muthukumaranR)) — ODSI
 
 ## Acknowledgments
 
 Originally developed by [Gaurab Panthee](https://github.com/igaurab) in collaboration with
 astrophysicist [Ashkbiz Danehkar](https://github.com/danehkar) (Universities Space Research
-Association). This repository is the canonical home for continued development under NASA IMPACT.
+Association). This repository is the canonical home for continued development under ODSI.
 
 Built on [astroquery](https://astroquery.readthedocs.io/), an
 [Astropy](https://www.astropy.org/)-affiliated package, and served over MCP with

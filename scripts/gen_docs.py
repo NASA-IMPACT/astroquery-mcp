@@ -244,7 +244,7 @@ def render_tools_page(instructions: str, tools: list[dict]) -> str:
     parts += [render_tool(t) for t in tools]
     parts += [
         "## Server instructions",
-        "This text is sent to the AI client when it connects, to explain how to use the tools.",
+        "This text is sent to the SI client when it connects, to explain how to use the tools.",
         code_block(instructions.strip(), "markdown"),
     ]
     return "\n\n".join(parts) + "\n"

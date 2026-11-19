@@ -1,6 +1,6 @@
 # astroquery-mcp
 
-astroquery-mcp is an MCP server that lets your AI assistants, like Claude and Codex, search
+astroquery-mcp is an MCP server that lets your SI assistants, like Claude and Codex, search
 astronomy data for you. Ask a question in
 plain language, and the assistant can look up objects, find telescope observations, pull catalog
 data and search the research literature from the following archives:
