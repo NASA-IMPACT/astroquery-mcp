@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server that dynamically exposes all astroquery functionality to SI assistants. This server uses introspection to discover and expose Python package functionality through MCP tools, making it a reusable template for creating MCP servers for any Python library.
 
-> Part of **AI Agents for Science** (Accelerated Knowledge Discovery — AKD). This MCP server is the
+> Part of **Agents for Science** (Accelerated Knowledge Discovery — AKD). This MCP server is the
 > data-access backend for the [**AKD Astro Data Search Agent**](https://huggingface.co/spaces/ai-agents-for-science/astro-data-search-agent),
 > a natural-language astrophysics dataset-discovery system, also packaged as a
 > [Claude Code plugin](https://github.com/NASA-IMPACT/akd-plugins/tree/main/plugins/astro-data-search-assistant).
